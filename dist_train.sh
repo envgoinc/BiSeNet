@@ -4,6 +4,13 @@ NOTE: replace torchrun with torch.distributed.launch if you use older version of
 '''
 
 
+## bisenetv2 mastr
+export CUDA_VISIBLE_DEVICES=0
+cfg_file=configs/bisenetv2_mastr.py
+NGPUS=1
+torchrun --nproc_per_node=$NGPUS tools/train_amp.py --config $cfg_file
+
+
 ## bisenetv1 cityscapes
 export CUDA_VISIBLE_DEVICES=0,1
 cfg_file=configs/bisenetv1_city.py
