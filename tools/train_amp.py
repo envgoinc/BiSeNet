@@ -105,7 +105,7 @@ def set_model_dist(net):
     net = nn.parallel.DistributedDataParallel(
         net,
         device_ids=[local_rank, ],
-        #  find_unused_parameters=True,
+        find_unused_parameters=True,
         output_device=local_rank
         )
     return net
