@@ -96,7 +96,7 @@ public:
     void parse_to_engine(string onnx_path, string quant, 
         string data_root, string data_file);
 
-    vector<int32_t> inference(vector<float>& data);
+    vector<uint8_t> inference(vector<float>& data);
 
     void test_speed_fps();
 

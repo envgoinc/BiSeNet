@@ -16,6 +16,29 @@
 
 #define BLOCKSIZE 256
 
+// Type-safe comparisons
+template <typename T>
+__device__ __forceinline__ bool gt_(T a, T b) { return a > b; }
+template <typename T>
+__device__ __forceinline__ bool eq_(T a, T b) { return a == b; }
+
+template <>
+__device__ __forceinline__ bool gt_<__half>(__half a, __half b) {
+    return __half2float(a) > __half2float(b);
+}
+template <>
+__device__ __forceinline__ bool eq_<__half>(__half a, __half b) {
+    return __half2float(a) == __half2float(b);
+}
+
+template <>
+__device__ __forceinline__ bool gt_<__nv_bfloat16>(__nv_bfloat16 a, __nv_bfloat16 b) {
+    return __bfloat162float(a) > __bfloat162float(b);
+}
+template <>
+__device__ __forceinline__ bool eq_<__nv_bfloat16>(__nv_bfloat16 a, __nv_bfloat16 b) {
+    return __bfloat162float(a) == __bfloat162float(b);
+}
 
 
 template<typename scalar_t>
@@ -47,26 +70,24 @@ template<typename scalar_t>
 __forceinline__ __device__
 scalar_t max_pair_shfl_func(scalar_t& val, int32_t& ind, const uint32_t delta) {
     scalar_t other_v = shfl_down_sync_func(val, delta);
-    int32_t other_i = shfl_down_sync_func(ind, delta);
+    int32_t  other_i = shfl_down_sync_func(ind, delta);
 
-    if (other_v > val) {
+    // Pick larger value; on tie, pick smaller index (deterministic)
+    if (gt_<scalar_t>(other_v, val) || (eq_<scalar_t>(other_v, val) && other_i < ind)) {
         val = other_v;
         ind = other_i;
     }
+    return val;  // <<< ensure we ALWAYS return
 }
-
 
 template<typename scalar_t>
 __forceinline__ __device__
 void reduce_max(scalar_t& val, int32_t& ind, bool broadcast) {
-    /* this requires:
-     * 1. warp layout is along x axis
-     * 2. blockDim.x should be divisble by 32
-     * 3. blockDim.x should be less or equal to 1024
-     * 4. warpSize should be 32
-     * 5. only thread with threadIdx.x == 0 obtains correct answer */
+    // Preconditions (as in your comments):
+    //  warp along x, blockDim.x % 32 == 0, blockDim.x <= 1024, warpSize == 32
 
     __syncthreads();
+    // Intra-warp reduce (down-shuffle)
     max_pair_shfl_func(val, ind, 16);
     max_pair_shfl_func(val, ind, 8);
     max_pair_shfl_func(val, ind, 4);
@@ -76,17 +97,18 @@ void reduce_max(scalar_t& val, int32_t& ind, bool broadcast) {
     __shared__ scalar_t shm_v[32];
     __shared__ int32_t  shm_i[32];
 
-    if (threadIdx.x % 32 == 0) {
+    // Write per-warp results
+    if ((threadIdx.x & 31) == 0) {
         shm_v[threadIdx.x >> 5] = val;
         shm_i[threadIdx.x >> 5] = ind;
     }
     __syncthreads();
 
-    /* from here actually only one warp work */
+    // First warp reduces across warps
     if (threadIdx.x < 32) {
+        int32_t n_warps = (blockDim.x >> 5);
         val = shm_v[0];
         ind = shm_i[0];
-        int32_t n_warps = (blockDim.x >> 5);
         if (threadIdx.x < n_warps) {
             val = shm_v[threadIdx.x];
             ind = shm_i[threadIdx.x];
