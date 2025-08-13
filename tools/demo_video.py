@@ -67,8 +67,13 @@ def writer(path):
     vw = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
     # Build a single deterministic BGR palette once
-    np.random.seed(123)
-    palette_bgr = np.random.randint(0, 256, (256, 3), dtype=np.uint8)
+    palette_bgr = np.zeros((256, 3), dtype=np.uint8)
+
+    palette_bgr[0] = [37, 195,  247]  # Class 0
+    palette_bgr[1] = [ 224, 167, 41]  # Class 1
+    palette_bgr[2] = [ 164,  75, 90]  # Class 2
+    palette_bgr[3:] = [128, 128, 128]
+    # palette_bgr = np.random.randint(0, 256, (256, 3), dtype=np.uint8)
 
     while True:
         item = write_q.get()
