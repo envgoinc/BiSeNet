@@ -86,7 +86,7 @@ public:
     }
 
     void register_plugins();
-
+    void ensure_stream();
     void set_opt_batch_size(int bs);
 
     void serialize(string save_path);

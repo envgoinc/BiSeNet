@@ -27,7 +27,12 @@ Then we can use either c++ or python to compile the model and run inference.
 
 
 #### 2. Build with source code
-Just use the standard cmake build method:  
+First export CUDA build directory if on jetson its the one below:
+```
+export CUDACXX=/usr/local/cuda/bin/nvcc
+```
+
+Then just use the standard cmake build method:  
 ```
 mkdir -p tensorrt/build
 cd tensorrt/build
