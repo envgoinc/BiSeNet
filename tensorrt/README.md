@@ -5,7 +5,7 @@
 Firstly, We should export our trained model to onnx model:  
 ```
 $ cd BiSeNet/
-$ python tools/export_onnx.py --config configs/bisenetv2_city.py --weight-path /path/to/your/model.pth --outpath ./model.onnx --aux-mode eval
+$ python tools/export_onnx.py --config configs/bisenetv2_mastr.py --weight-path /path/to/your/model.pth --outpath ./model.onnx --aux-mode eval
 ```
 
 **NOTE:** I use cropsize of `1024x2048` here in my example, you should change it according to your specific application. The inference cropsize is fixed from this step on, so you should decide the inference cropsize when you export the model here.  
@@ -80,33 +80,4 @@ $ ./segment test /path/to/saved_model.trt
 
 The speed(fps) is tested on a single nvidia A40 gpu with `batchsize=1` and `cropsize=(1024,2048)`, which might be different from your platform and settings. You should evaluate the speed considering your own platform and cropsize. Also note that the performance would be affected if your gpu is concurrently working on other tasks. Please make sure no other program is running on your gpu when you test the speed.
 
-
-
-### Using python (this is not updated to tensorrt 10.3)
-
-You can also use python script to compile and run inference of your model. <br>
-
-Following is still the usage method of tensorrt 8.2.<br>
-
-
-#### 1. Compile model to onnx
-
-
-With this command: 
-```
-$ cd BiSeNet/tensorrt
-$ python segment.py compile --onnx /path/to/model.onnx --savepth ./model.trt --quant fp16/fp32
-```
-
-This will compile onnx model into tensorrt serialized engine, save save to `./model.trt`.  
-
-
-#### 2. Inference with Tensorrt
-
-Run Inference like this:  
-```
-$ python segment.py run --mdpth ./model.trt --impth ../example.png --outpth ./res.png
-```
-
-This will use the tensorrt model compiled above, and run inference with the example image.  
 
