@@ -66,60 +66,31 @@ My platform is like this:
 With a pretrained weight, you can run inference on an single image like this: 
 
 ```
-$ python tools/demo.py --config configs/bisenetv2_city.py --weight-path /path/to/your/weights.pth --img-path ./example.png
+$ python tools/demo.py --config configs/bisenetv2_mastr.py --weight-path /path/to/your/weights.pth --img-path ./example.png
 ```
 
 This would run inference on the image and save the result image to `./res.jpg`.  
 
 Or you can run inference on a video like this:  
 ```
-$ python tools/demo_video.py --config configs/bisenetv2_coco.py --weight-path res/model_final.pth --input ./video.mp4 --output res.mp4
+$ python tools/demo_video.py --config configs/bisenetv2_mastr.py --weight-path res/model_final.pth --input ./video.mp4 --output res.mp4
 ```
 This would generate segmentation file as `res.mp4`. If you want to read from camera, you can set `--input camera_id` rather than `input ./video.mp4`.   
 
 
 ## prepare dataset
 
-1.cityscapes  
+1.Mastr ***THE ENVGO DATASET*** 
 
-Register and download the dataset from the official [website](https://www.cityscapes-dataset.com/). Then decompress them into the `datasets/cityscapes` directory:  
+Get a dataset from the Envgo Google Drive, Then decompress them into the `datasets/mastr` directory:  
+It should already be in a `labels/` and `images/` folder when uncompressed. 
+Next go to model_farm repo and prepare this dateset by running the generate_list.py file located at
+`datasets/model_configs/BiSeNet` with this general run structure:
 ```
-$ mv /path/to/leftImg8bit_trainvaltest.zip datasets/cityscapes
-$ mv /path/to/gtFine_trainvaltest.zip datasets/cityscapes
-$ cd datasets/cityscapes
-$ unzip leftImg8bit_trainvaltest.zip
-$ unzip gtFine_trainvaltest.zip
-```
-
-2.cocostuff   
-
-Download `train2017.zip`, `val2017.zip` and `stuffthingmaps_trainval2017.zip` split from official [website](https://cocodataset.org/#download). Then do as following:  
-```
-$ unzip train2017.zip
-$ unzip val2017.zip
-$ mv train2017/ /path/to/BiSeNet/datasets/coco/images
-$ mv val2017/ /path/to/BiSeNet/datasets/coco/images
-
-$ unzip stuffthingmaps_trainval2017.zip
-$ mv train2017/ /path/to/BiSeNet/datasets/coco/labels
-$ mv val2017/ /path/to/BiSeNet/datasets/coco/labels
-
-$ cd /path/to/BiSeNet
-$ python tools/gen_dataset_annos.py --dataset coco
+python3 generate_list.py /path/to/BiSeNet/datasets/mastr/
 ```
 
-3.ade20k
-
-Download `ADEChallengeData2016.zip` from this [website](http://sceneparsing.csail.mit.edu/) and unzip it. Then we can move the uncompressed folders to `datasets/ade20k`, and generate the txt files with the script I prepared for you:  
-```
-$ unzip ADEChallengeData2016.zip
-$ mv ADEChallengeData2016/images /path/to/BiSeNet/datasets/ade20k/
-$ mv ADEChallengeData2016/annotations /path/to/BiSeNet/datasets/ade20k/
-$ python tools/gen_dataset_annos.py --dataset ade20k
-```
-
-
-4.custom dataset  
+2.custom dataset  
 
 If you want to train on your own dataset, you should generate annotation files first with the format like this: 
 ```
