@@ -43,5 +43,5 @@ torch.onnx.export(net, dummy_input, args.out_pth,
     input_names=input_names, output_names=output_names,
     verbose=False, opset_version=18,
     operator_export_type=OperatorExportTypes.ONNX_FALLTHROUGH,
-    dynamic_axes=dynamic_axes)
+    dynamic_axes=dynamic_axes, dynamo=False)
 

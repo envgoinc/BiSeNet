@@ -306,7 +306,7 @@ def eval_model(cfg, net):
     net.eval()
 
     is_dist = dist.is_initialized()
-    dl = get_data_loader(cfg, mode='val')
+    dl = get_data_loader(cfg, mode='test')
     lb_ignore = dl.dataset.lb_ignore
 
     heads, mious, fw_mious, cat_ious = [], [], [], []

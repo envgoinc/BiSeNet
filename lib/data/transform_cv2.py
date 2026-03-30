@@ -1,7 +1,3 @@
-#!/usr/bin/python
-# -*- encoding: utf-8 -*-
-
-
 import random
 import math
 
@@ -51,7 +47,6 @@ class RandomResizedCrop(object):
         )
 
 
-
 class RandomHorizontalFlip(object):
 
     def __init__(self, p=0.5):
@@ -67,6 +62,21 @@ class RandomHorizontalFlip(object):
             lb=lb[:, ::-1],
         )
 
+
+class RandomVerticalFlip(object):
+
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, im_lb):
+        if np.random.random() < self.p:
+            return im_lb
+        im, lb = im_lb['im'], im_lb['lb']
+        assert im.shape[:2] == lb.shape[:2]
+        return dict(
+            im=im[::-1, :, :].copy(),
+            lb=lb[::-1, :].copy(),
+        )
 
 
 class ColorJitter(object):
@@ -117,6 +127,81 @@ class ColorJitter(object):
         return table[im]
 
 
+class RandomHue(object):
+
+    def __init__(self, hue=0.1):
+        self.hue = hue
+
+    def __call__(self, im_lb):
+        im, lb = im_lb['im'], im_lb['lb']
+        assert im.shape[:2] == lb.shape[:2]
+        hsv = cv2.cvtColor(im, cv2.COLOR_RGB2HSV).astype(np.int32)
+        shift = int(np.random.uniform(-self.hue * 180, self.hue * 180))
+        hsv[:, :, 0] = (hsv[:, :, 0] + shift) % 180
+        hsv = hsv.astype(np.uint8)
+        im = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+        return dict(im=im, lb=lb)
+
+
+class RandomKeystoneWarp(object):
+    """
+    Simulates keystone distortion by randomly perturbing each corner within
+    a box of +/- `jitter` pixels, then computing a perspective transform that
+    maps those 4 perturbed corners back to a rectangle of `out_size` (W, H).
+
+    Must be the FIRST transform in the Compose list.
+    Applied with probability `p`.
+    """
+
+    def __init__(self, jitter=200, out_size=(1184, 896), p=0.2):
+        self.jitter = jitter
+        self.out_w, self.out_h = out_size
+        self.p = p
+
+    def __call__(self, im_lb):
+        if np.random.random() > self.p:
+            return im_lb
+
+        im, lb = im_lb['im'], im_lb['lb']
+        assert im.shape[:2] == lb.shape[:2]
+
+        h, w = im.shape[:2]
+
+        def rand_pt(cx, cy):
+            x = cx + np.random.randint(-self.jitter, self.jitter + 1)
+            y = cy + np.random.randint(-self.jitter, self.jitter + 1)
+            x = int(np.clip(x, 0, w - 1))
+            y = int(np.clip(y, 0, h - 1))
+            return [x, y]
+
+        src = np.float32([
+            rand_pt(0,     0    ),   # top-left
+            rand_pt(w - 1, 0    ),   # top-right
+            rand_pt(w - 1, h - 1),   # bottom-right
+            rand_pt(0,     h - 1),   # bottom-left
+        ])
+
+        dst = np.float32([
+            [0,              0             ],   # top-left
+            [self.out_w - 1, 0             ],   # top-right
+            [self.out_w - 1, self.out_h - 1],   # bottom-right
+            [0,              self.out_h - 1],   # bottom-left
+        ])
+
+        M = cv2.getPerspectiveTransform(src, dst)
+
+        im_warped = cv2.warpPerspective(
+            im, M, (self.out_w, self.out_h),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_REFLECT_101,
+        )
+        lb_warped = cv2.warpPerspective(
+            lb, M, (self.out_w, self.out_h),
+            flags=cv2.INTER_NEAREST,
+            borderMode=cv2.BORDER_REFLECT_101,
+        )
+
+        return dict(im=im_warped, lb=lb_warped)
 
 
 class ToTensor(object):
@@ -155,13 +240,16 @@ class TransformationTrain(object):
 
     def __init__(self, scales, cropsize):
         self.trans_func = Compose([
+            RandomKeystoneWarp(jitter=200, out_size=(1184, 896), p=0.2),
             RandomResizedCrop(scales, cropsize),
             RandomHorizontalFlip(),
+            RandomVerticalFlip(),
             ColorJitter(
                 brightness=0.4,
                 contrast=0.4,
                 saturation=0.4
             ),
+            RandomHue(hue=0.1),
         ])
 
     def __call__(self, im_lb):
@@ -176,7 +264,5 @@ class TransformationVal(object):
         return dict(im=im, lb=lb)
 
 
-
 if __name__ == '__main__':
     pass
-
