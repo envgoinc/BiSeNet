@@ -6,7 +6,11 @@ cfg = dict(
     lr_start=1e-2,
     weight_decay=5e-4,
     warmup_iters=1000,
-    max_iter=10000,
+    checkpoint_interval = 1000,  # save every X iterations (pick what you want)
+    val_interval = 100,          # run validation every N training iters
+    val_num_batches = 0,         # 0 = full val loader; >0 = limit batches per val run
+
+    max_iter=100000,
     dataset='MASTR1325',
     im_root='./datasets/mastr',
     train_im_anns='./datasets/mastr/train.txt',
@@ -19,5 +23,14 @@ cfg = dict(
     eval_ims_per_gpu=2,
     use_fp16=True,
     use_sync_bn=False,
-    respth='./res/mastr',
+    
+
+    #wandb stuff
+    wandb=True,
+    wandb_project="bisenetv2-mastr",
+    wandb_entity=None,          
+    wandb_run_name="test_segmented_front overfitting",   
+    wandb_notes = "testing an overfitting condition version2 ",
+     
+    wandb_tags=["amp", "ddp"], #amp means automatic mixed precision is enabled in pytorch
 )

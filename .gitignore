@@ -120,8 +120,20 @@ openvino/output*
 ncnn/models/*
 *.onnx
 *.pth
+*.trt
 tis/cpp_client/build/*
 log*txt
 000000320425.jpg
 
 tvm/
+
+
+
+
+data_birdseye_long_selection/
+experiments/
+*.mp4
+*.mkv
+*.jpg
+*.png
+wandb/
