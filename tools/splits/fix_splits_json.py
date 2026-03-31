@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
+#This is a very useful script for fixing any splits that are broken or have incomplete information. Very helpful when dealing with larger datasets. 
 """
 fix_splits_json.py
 

@@ -1,3 +1,5 @@
+# if you have a json which you make for data you identify as bad (through other preprocessing tools) you can use this script to refactor a splits set to remove the data that is bad without breaking the structure of the set
+
 """
 clean_splits.py
 

@@ -1,3 +1,5 @@
+#This is an script for taking a list of reference images and comparing them against another set of reference images to find their intersection. This prevents data leakage between hand segmented vs SAM2 segemented datasets. I owe a small chunk of my sanity to this script. 
+
 #!/usr/bin/env python3
 from __future__ import annotations
 import json

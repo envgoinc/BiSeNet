@@ -1,3 +1,4 @@
+# Trivial script for printing split descriptions. Useful.
 #!/usr/bin/env python3
 """
 Print total frame counts per split (train/val/test) from a splits JSON.
