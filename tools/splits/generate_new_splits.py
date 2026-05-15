@@ -45,9 +45,9 @@ OUTPUT_JSON = "/app/birdseye_run_12/generated_splits.json"
 EXPERIMENT_NAME = "generated"
 SOURCE_EXPERIMENTS: List[str] = []
 
-TRAIN_FRAC = 1.0
-VAL_FRAC = 0.0
-TEST_FRAC = 0.0
+TRAIN_FRAC = 0.8
+VAL_FRAC = 0.1
+TEST_FRAC = 0.1
 
 STRICT_LABELS = True
 
